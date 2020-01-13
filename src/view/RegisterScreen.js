@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
   View,
   Text,
@@ -14,40 +14,33 @@ export default class RegisterScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      nama: '',
-      notelp: '',
-      alamat: '',
-      email: '',
-      password: '',
+      nama: "",
+      no_telp: "",
+      alamat: "",
+      email: "",
+      password: "",
       loading: false, 
       disabled: false
     };
   }
-  userRegister = (props) => {
+  userRegister = () => {
     this.setState({ loading:true, disabled: true }, () => {
       fetch('http://192.168.43.77/user_data/user_register.php', {
           method: 'POST',
           headers: {
-            'Accept': 'application/json',
+            Accept: 'application/json',
             'Content-type': 'application/json',
           },
-          body: JSON.stringify({
-            nama: this.state.nama,
-            notelp: this.state.notelp,
-            alamat: this.state.alamat,
-            email: this.state.email,
-            password: this.state.password,
-          }),
+          body: JSON.stringify(this.state),
         })
         .then(response => response.text())
         .then(responseJson => {
           Alert.alert(responseJson);
           this.setState({ loading: false, disabled: false });
           if(responseJson === "Berhasil Register" ){
-            this.props.navigation.navigate("Home")
-            
+            this.props.navigation.navigate("Login")  
           }else{
-            Alert.alert("Gagal Register")
+            alert("Gagal Register"  + responseJson)
           }
         })
         .catch(error => {
@@ -59,7 +52,7 @@ export default class RegisterScreen extends Component {
   render() {
     return (
       <View style={styles.MainContainer}>
-        <ScrollView>
+        <KeyboardAwareScrollView>
           <Text style={styles.title}>Register</Text>
           <TextInput
             placeholder="Nama"
@@ -70,7 +63,7 @@ export default class RegisterScreen extends Component {
           <TextInput
             keyboardType="number-pad"
             placeholder="083947"
-            onChangeText={text => this.setState({notelp: text})}
+            onChangeText={text => this.setState({no_telp: text})}
             underlineColorAndroid="transparent"
             style={styles.TextInputStyleClass}
           />
@@ -97,13 +90,13 @@ export default class RegisterScreen extends Component {
           <TouchableNativeFeedback
             disabled = { this.state.disabled }
             onPress={ () => {
-              this.userRegister(props);
+              this.userRegister();
           }}>
             <View style={styles.myButtonRegister}>
               <Text>Register</Text>
             </View>
           </TouchableNativeFeedback> 
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </View>
     );
   }

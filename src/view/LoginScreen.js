@@ -8,18 +8,84 @@ import {
   TextInput,
   TouchableNativeFeedback,
 } from 'react-native';
+import { userStore } from '../controller/databasesHelper';
+
 
 export default class LoginScreen extends Component {
+  constructor(props){
+    super(props)
+    this.state = {
+      email: "",
+      password: "",
+      loading: false,
+      disabled: false
+    }
+  }
+  
+
+  async userLogin () {
+    let res, result;
+    this.setState(()=>({loading: true, disabled: true}))
+    try{
+      res = await fetch('http://192.168.43.77/user_data/user_login.php', {
+        headers: {
+          Accept: "application/json",
+          'Content-Type': "application/json",
+        },
+        method: 'POST',
+        body: JSON.stringify(this.state),
+      })
+    }
+    catch(e){
+      alert(e.message)
+      this.setState(()=>({loading: false, disabled: false}))
+      return
+    }
+
+    try{
+      result = await res.json(); 
+    }catch(e){
+      alert(JSON.stringify(e))
+      this.setState(()=>({loading: false, disabled: false}))
+      return
+    }
+
+    if(result.status === 'succes'){
+      try{
+        await userStore(JSON.stringify(result.user));
+
+        // alert(JSON.stringify(result))
+        this.props.navigation.replace('Home')
+        // , NavigationActions.replace('UserProfile',{username: result.user.nama})
+          // username: result.user.nama})
+      }catch(e){
+      alert(JSON.stringify(e))
+      this.setState(()=>({loading: false, disabled: false}))
+      return
+      }
+    }else{
+      alert("Gagal login")
+    }
+    this.setState(()=>({loading: false, disabled: false}))
+  }
+
+
   render() {
+    
+    if(this.state.loading){
+      return <View style={styles.loadingContainer}><Text style={styles.textLoading}>Please Wait.....</Text></View>
+    }
     return (
       <View style={styles.MainContainer}>
         <ScrollView>
           <Text style={styles.title}>Login</Text>
           <TextInput
+            keyboardType="email-address"
             placeholder="example@mail.com"
             onChangeText={email => this.setState({email: email})}
             underlineColorAndroid="transparent"
             style={styles.TextInputStyleClass}
+            value={this.state.email}
           />
           <TextInput
             placeholder="password"
@@ -27,10 +93,11 @@ export default class LoginScreen extends Component {
             underlineColorAndroid="transparent"
             style={styles.TextInputStyleClass}
             secureTextEntry={true}
+            value={this.state.password}
           />
           <TouchableNativeFeedback
             onPress={ () => {
-              this.props.navigation.navigate('Register');
+              this.userLogin()
           }}
           >
             <View style={styles.myButtonLogin}>
@@ -51,6 +118,16 @@ export default class LoginScreen extends Component {
   }
 }
 const styles = StyleSheet.create({
+  loadingContainer:{
+    backgroundColor: "#12cad6",
+    justifyContent: "center",
+    alignContent:"center",
+    alignItems: "center",
+  },
+  textLoading:{
+    color: "#916dd5",
+    fontSize: 22
+  },
   MainContainer: {
     justifyContent: 'center',
     padding: 20,
